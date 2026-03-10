@@ -4,16 +4,16 @@ const axios = require("axios");
 const app = express();
 app.use(express.json());
 
-// DADOS DA SUA Z-API
+// COLOQUE SEUS DADOS DA Z-API AQUI
 const INSTANCE_ID = "3EFEDC731077E241C94E020CDDF3D26F";
 const TOKEN = "41C20838289CB5BB5756B42E";
 
-// Página inicial
+// página inicial
 app.get("/", (req,res)=>{
 res.send("Bot WhatsApp online 🚀");
 });
 
-// Webhook que recebe mensagens
+// webhook que recebe mensagens
 app.post("/webhook", async (req,res)=>{
 
 try{
@@ -41,9 +41,9 @@ else if(mensagem === "1"){
 
 resposta = `Entrada de R$250
 
-Assim que seu nome estiver limpo você paga o restante.
+Quando seu nome estiver limpo você paga os outros R$250.
 
-Responda OK para gerar seu PIX.`;
+Responda OK para gerar o PIX.`;
 
 }
 
@@ -51,7 +51,7 @@ else if(mensagem === "2"){
 
 resposta = `Pagamento à vista R$300.
 
-Responda OK para gerar seu PIX.`;
+Responda OK para gerar o PIX.`;
 
 }
 
@@ -59,7 +59,7 @@ else if(mensagem === "3"){
 
 resposta = `Tudo bem 🙂
 
-Quando quiser limpar seu nome é só chamar aqui.`;
+Quando quiser limpar seu nome é só mandar mensagem novamente.`;
 
 }
 
