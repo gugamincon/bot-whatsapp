@@ -16,9 +16,9 @@ app.post("/webhook", async (req, res) => {
 
   try {
 
-    const phone = req.body.phone;
+    cconst phone = req.body.phone || req.body.from;
     const mensagem = req.body.text?.message?.toLowerCase();
-
+    console.log("Telefone", phone);
     console.log("Mensagem recebida:", mensagem);
 
     let resposta = "";
