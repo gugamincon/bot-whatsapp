@@ -21,7 +21,8 @@ app.post("/webhook", async (req, res) => {
 
   try {
 
-    const phone = (req.body.phone || req.body.from || "").replace("@c.us","").replace("+","");
+    let phone = req.body.phone || req.body.from || req.body.sender || ""; 
+    phone = phone.replace("@c.us", "").replace("+", "");
     const mensagem = req.body.text?.message?.toLowerCase();
 
     console.log("Telefone:", phone);
