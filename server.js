@@ -64,7 +64,7 @@ clientes[phone]={etapa:"inicio"};
 if(mensagem.includes("oi") || mensagem.includes("ola") || mensagem.includes("olá")){
 
 await enviarMensagem(phone,
-`Olá ${nome} tudo bem?
+`Olá ${nome} tudo bem?'
 
 Eu sou assistente virtual da GM soluções financeiras.
 
@@ -215,7 +215,7 @@ email:'cliente${phone}@gmail.com'
 },
 {
 headers:{
-Authorization:Bearer ${MP_TOKEN}
+Authorization:'Bearer ${MP_TOKEN}'
 }
 }
 );
@@ -229,7 +229,7 @@ phone: phone,
 image: qr,
 caption:`Pague o PIX para continuar.
 
-Valor: R$${valor}`
+Valor: 'R$${valor}`
 },
 {
 headers:{
@@ -271,8 +271,8 @@ await enviarMensagem(phone,
 
 Obrigado pela preferência.
 
-Nome: ${clientes[phone].nome}
-CPF: ${clientes[phone].cpf}
+Nome: '${clientes[phone].nome}'
+CPF: '${clientes[phone].cpf}'
 
 Seu nome entrou na lista.
 
