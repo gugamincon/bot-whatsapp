@@ -14,15 +14,15 @@ const CLIENT_TOKEN = "Fe75f077cfe7a4a2a8c1a6452291d25c1S";
 
 const MP_TOKEN = "TEST-1002279802964854-031022-80408f67684e26f7d070ac34a0e85c30-1279924665";
 
-/* MEMÓRIA CLIENTES */
+/* MEMÓRIA */
 
 let clientes = {};
 
-/* FUNÇÃO VALIDAR CPF */
+/* VALIDAR CPF */
 
 function validarCPF(cpf){
 
-cpf = cpf.replace(/[^\d]+/g,'');
+cpf = cpf.replace(/\D/g,'');
 
 if(cpf.length !== 11) return false;
 
@@ -31,8 +31,8 @@ if(/^(\d)\1+$/.test(cpf)) return false;
 let soma = 0;
 let resto;
 
-for (let i=1; i<=9; i++)
-soma += parseInt(cpf.substring(i-1,i)) * (11-i);
+for (let i = 1; i <= 9; i++)
+soma += parseInt(cpf.substring(i-1,i)) * (11 - i);
 
 resto = (soma * 10) % 11;
 
@@ -42,8 +42,8 @@ if(resto != parseInt(cpf.substring(9,10))) return false;
 
 soma = 0;
 
-for (let i=1; i<=10; i++)
-soma += parseInt(cpf.substring(i-1,i)) * (12-i);
+for (let i = 1; i <= 10; i++)
+soma += parseInt(cpf.substring(i-1,i)) * (12 - i);
 
 resto = (soma * 10) % 11;
 
@@ -61,7 +61,7 @@ app.get("/", (req,res)=>{
 res.send("BOT ONLINE 🚀");
 });
 
-/* ENVIAR WHATSAPP */
+/* ENVIAR TEXTO */
 
 async function enviarMensagem(phone,msg){
 
@@ -70,6 +70,26 @@ await axios.post(
 {
 phone: phone,
 message: msg
+},
+{
+headers:{
+"Client-Token": CLIENT_TOKEN
+}
+}
+);
+
+}
+
+/* ENVIAR BOTÕES */
+
+async function enviarBotoes(phone,msg,botoes){
+
+await axios.post(
+`https://api.z-api.io/instances/${INSTANCE_ID}/token/${TOKEN}/send-buttons`,
+{
+phone: phone,
+message: msg,
+buttons: botoes
 },
 {
 headers:{
@@ -90,7 +110,7 @@ let phone = req.body.phone || req.body.from || "";
 phone = phone.replace("@c.us","");
 
 const nome = req.body.senderName || "";
-const mensagem = req.body.text?.message?.toLowerCase() || "";
+const mensagem = (req.body.text?.message || "").toLowerCase();
 
 if(!clientes[phone]){
 clientes[phone]={etapa:"inicio"};
@@ -105,9 +125,7 @@ await enviarMensagem(phone,
 
 Eu sou assistente virtual da GM soluções financeiras.
 
-Vou te mandar na próxima mensagem um texto explicando quase tudo sobre o nosso processo.
-
-Mas fique à vontade para perguntar depois.`
+Vou explicar rapidamente como funciona nosso processo.`
 );
 
 setTimeout(async ()=>{
@@ -115,41 +133,28 @@ setTimeout(async ()=>{
 await enviarMensagem(phone,
 `✨ PROCESSO LIMPA NOME ✨
 
-Quer limpar seu nome de forma rápida e segura?
-
-📌 Como funciona?
-Você envia:
-
-• Nome completo
-• CPF
-• Comprovante PIX
-
-📆 Listas enviadas semanalmente
-⏳ Prazo: 10 dias úteis
-
 ✔ Serasa
 ✔ Boa Vista
 ✔ CENPROT
 
+Prazo médio: 10 dias úteis
+
 ⚠ Importante
 
-• Não quita dívida
-• Remove dos órgãos de crédito
-• Não garante crédito`
+• Não quitamos dívidas
+• Apenas removemos dos órgãos de crédito`
 );
 
-},5000);
+},3000);
 
 setTimeout(async ()=>{
 
-await enviarMensagem(phone,
-`Você entendeu até aqui?
+await enviarBotoes(phone,"Podemos continuar?",[
+{ id:"continuar", label:"Podemos continuar" },
+{ id:"duvida", label:"Tenho dúvidas" }
+]);
 
-1️⃣ Sim podemos continuar
-2️⃣ Ainda tenho dúvidas`
-);
-
-},15000);
+},6000);
 
 clientes[phone].etapa="menu";
 
@@ -159,52 +164,36 @@ clientes[phone].etapa="menu";
 
 else if(clientes[phone].etapa=="menu"){
 
-if(mensagem.includes("1")){
+if(mensagem.includes("continuar")){
 
-await enviarMensagem(phone,
-`Ótimo!
-
-Temos dois planos:
-
-💳 Parcelado
-3x de 250
-
-💰 À vista
-300 reais
-
-Digite:
-
-1️⃣ Parcelado
-2️⃣ À vista`
-);
+await enviarBotoes(phone,"Escolha seu plano",[
+{ id:"parcelado", label:"Parcelado 3x 250" },
+{ id:"avista", label:"À vista 300" }
+]);
 
 clientes[phone].etapa="plano";
 
 }else{
 
 await enviarMensagem(phone,
-`Nosso atendimento humano pode demorar um pouco.
-
-Quando quiser continuar digite:
-
-CONTINUAR`
+"Um atendente humano pode demorar um pouco. Quando quiser continuar clique em continuar."
 );
 
 }
 
 }
 
-/* ESCOLHER PLANO */
+/* PLANO */
 
 else if(clientes[phone].etapa=="plano"){
 
-if(mensagem.includes("1")){
+if(mensagem.includes("parcelado")){
 clientes[phone].valor = 250;
 }else{
 clientes[phone].valor = 300;
 }
 
-await enviarMensagem(phone,"Me envie seu nome completo");
+await enviarMensagem(phone,"Envie seu nome completo");
 
 clientes[phone].etapa="nome";
 
@@ -216,7 +205,7 @@ else if(clientes[phone].etapa=="nome"){
 
 clientes[phone].nome = mensagem;
 
-await enviarMensagem(phone,"Agora envie seu CPF (apenas números)");
+await enviarMensagem(phone,"Agora envie seu CPF");
 
 clientes[phone].etapa="cpf";
 
@@ -226,17 +215,24 @@ clientes[phone].etapa="cpf";
 
 else if(clientes[phone].etapa=="cpf"){
 
-if(!validarCPF(mensagem)){
+const cpfDigitado = mensagem.replace(/\D/g,'');
+
+if(!validarCPF(cpfDigitado)){
 
 await enviarMensagem(phone,
-"❌ CPF inválido.\n\nPor favor envie novamente apenas os números."
+`❌ CPF inválido
+
+Envie novamente apenas os números.
+
+Exemplo:
+12345678909`
 );
 
 return;
 
 }
 
-clientes[phone].cpf = mensagem;
+clientes[phone].cpf = cpfDigitado;
 
 const valor = clientes[phone].valor;
 
@@ -263,15 +259,15 @@ Authorization:`Bearer ${MP_TOKEN}`,
 const pix = pagamento.data.point_of_interaction.transaction_data.qr_code;
 
 await enviarMensagem(phone,
-`💳 Pagamento via PIX
+`💳 Pagamento PIX
 
 Valor: R$ ${valor}
 
-Copie e cole este código no seu banco:
+Copie o código abaixo e pague no seu banco:
 
 ${pix}
 
-Após pagar, envie o comprovante aqui 👍`
+Após pagar envie o comprovante 👍`
 );
 
 clientes[phone].pagamento = pagamento.data.id;
@@ -282,7 +278,7 @@ clientes[phone].etapa="aguardando";
 
 }catch(e){
 
-console.log("Erro webhook:",e.message);
+console.log(e);
 
 }
 
@@ -305,8 +301,6 @@ if(clientes[phone].pagamento == pagamento){
 await enviarMensagem(phone,
 `✅ Pagamento confirmado!
 
-Obrigado pela preferência.
-
 Nome: ${clientes[phone].nome}
 CPF: ${clientes[phone].cpf}
 
@@ -321,7 +315,7 @@ Prazo até 10 dias úteis.`
 
 }catch(e){
 
-console.log("Erro pagamento:",e.message);
+console.log(e);
 
 }
 
