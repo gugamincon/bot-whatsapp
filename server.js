@@ -34,56 +34,71 @@ app.post("/webhook", async (req, res) => {
     /* MENU */
 
     if (
-mensagem?.includes("oi") ||
-mensagem?.includes("ola") ||
-mensagem?.includes("olá")
-) {
+      mensagem?.includes("oi") ||
+      mensagem?.includes("ola") ||
+      mensagem?.includes("olá")
+    ) {
 
-const nome = req.body.senderName || "amigo";
+      resposta = `Olá 👋
 
-resposta = `Olá ${nome}, como vai você? 😊
+Promoção para limpar seu nome
 
-Se você chegou até aqui é porque se interessou no Processo Limpa Nome.
+De 999 por apenas 499
 
-Abaixo vou te explicar melhor 👇
+Escolha uma opção:
 
-✨ PROCESSO LIMPA NOME ✨
+1 - Pagar parcelado
+2 - Pagar à vista (300 reais)
+3 - Deixar para depois`;
 
-Quer limpar seu nome de forma rápida e segura? Eu faço o Processo Limpa Nome para você.
+    }
 
-📌 Como funciona?
-Você me envia:
-* Nome completo
-* CPF
-* Comprovante pix que já efetuou o pagamento 
+    /* PARCELADO */
 
-📆 As listas são enviadas toda sexta-feira, então o prazo começa a contar a partir da sexta.
-⏳ Prazo: 7 dias úteis
+    else if (mensagem === "1") {
 
-⸻
+      resposta = `Parcelamento disponível ✅
 
-🔎 O que é limpo?
-✔️ Serasa
-✔️ Boa Vista
-✔️ CENPROT (protestos em cartórios)
+Entrada de 250 reais
+e mais 250 quando seu nome estiver limpo.
 
-⸻
+Digite 2 para pagar à vista
+ou 3 para falar depois.`;
 
-💰 Garantia de êxito
-O pagamento é com garantia de resultado em 7 dias úteis.
-Caso não seja retirado, seu dinheiro é ressarcido integralmente.
+    }
 
-🛡️ Em alguns casos já aconteceu da dívida voltar por queda de liminar no processo.
-Nessa situação, você tem 3 meses de garantia e refazemos o processo sem custo.
+    /* À VISTA */
 
-⸻
+    else if (mensagem === "2") {
 
-⚠️ Importante:
-* O processo limpa seu nome, mas não quita a dívida com a instituição.
-* Apenas remove dos órgãos de proteção ao crédito citados acima.
-* Não garante crédito.
-`;
-}
+      resposta = `Pagamento à vista 💰
+
+Valor promocional: 300 reais
+
+PIX:
+
+19974113636
+
+Após pagar envie o comprovante aqui.`;
+
+    }
+
+    /* DEPOIS */
+
+    else if (mensagem === "3") {
+
+      resposta = `Tudo bem 👍
+
+Quando quiser limpar seu nome é só chamar aqui.
+
+Estamos à disposição.`;
+
+    }
+
+    /* ENVIAR RESPOSTA */
+
+    if (resposta !== "") {
+
       await axios.post(
 'https://api.z-api.io/instances/3EFEDC731077E241C94E020CDDF3D26F/token/41C20838289CB5BB5756B42E/send-text',
 {
