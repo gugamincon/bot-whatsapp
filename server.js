@@ -125,7 +125,7 @@ await enviarMensagem(phone,
 
 Eu sou assistente virtual da GM soluções financeiras.
 
-Vou explicar rapidamente como funciona nosso processo.`
+Vou te explicar como funciona nosso processo.`
 );
 
 setTimeout(async ()=>{
@@ -133,28 +133,34 @@ setTimeout(async ()=>{
 await enviarMensagem(phone,
 `✨ PROCESSO LIMPA NOME ✨
 
+Quer limpar seu nome de forma rápida?
+
+Você envia:
+
+• Nome completo
+• CPF
+• Comprovante PIX
+
+Prazo médio: 10 dias úteis
+
 ✔ Serasa
 ✔ Boa Vista
 ✔ CENPROT
 
-Prazo médio: 10 dias úteis
-
-⚠ Importante
-
-• Não quitamos dívidas
-• Apenas removemos dos órgãos de crédito`
+⚠ Não quitamos dívidas
+⚠ Apenas removemos dos órgãos`
 );
 
-},3000);
+},5000);
 
 setTimeout(async ()=>{
 
-await enviarBotoes(phone,"Podemos continuar?",[
+await enviarBotoes(phone,"Você entendeu até aqui?",[
 { id:"continuar", label:"Podemos continuar" },
-{ id:"duvida", label:"Tenho dúvidas" }
+{ id:"duvidas", label:"Tenho dúvidas" }
 ]);
 
-},6000);
+},45000);
 
 clientes[phone].etapa="menu";
 
@@ -173,17 +179,11 @@ await enviarBotoes(phone,"Escolha seu plano",[
 
 clientes[phone].etapa="plano";
 
-}else{
-
-await enviarMensagem(phone,
-"Um atendente humano pode demorar um pouco. Quando quiser continuar clique em continuar."
-);
-
 }
 
 }
 
-/* PLANO */
+/* ESCOLHER PLANO */
 
 else if(clientes[phone].etapa=="plano"){
 
@@ -205,7 +205,7 @@ else if(clientes[phone].etapa=="nome"){
 
 clientes[phone].nome = mensagem;
 
-await enviarMensagem(phone,"Agora envie seu CPF");
+await enviarMensagem(phone,"Agora envie seu CPF (somente números)");
 
 clientes[phone].etapa="cpf";
 
@@ -236,7 +236,7 @@ clientes[phone].cpf = cpfDigitado;
 
 const valor = clientes[phone].valor;
 
-/* CRIAR PIX */
+/* GERAR PIX */
 
 const pagamento = await axios.post(
 "https://api.mercadopago.com/v1/payments",
@@ -251,7 +251,7 @@ email:`cliente${phone}@gmail.com`
 {
 headers:{
 Authorization:`Bearer ${MP_TOKEN}`,
-"X-Idempotency-Key": `${phone}-${Date.now()}`
+"X-Idempotency-Key":`${phone}-${Date.now()}`
 }
 }
 );
@@ -263,7 +263,7 @@ await enviarMensagem(phone,
 
 Valor: R$ ${valor}
 
-Copie o código abaixo e pague no seu banco:
+Copie e cole no seu banco:
 
 ${pix}
 
