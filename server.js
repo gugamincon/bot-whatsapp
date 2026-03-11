@@ -8,6 +8,7 @@ app.use(express.json());
 
 const INSTANCE_ID = "3EFEDC731077E241C94E020CDDF3D26F";
 const TOKEN = "41C20838289CB5BB5756B42E";
+const CLIENT_TOKEN = "Fe75f077cfe7a4a2a8c1a6452291d25c1S";
 
 /* TESTE SERVIDOR */
 
@@ -99,13 +100,17 @@ Estamos à disposição.`;
     if (resposta !== "") {
 
       await axios.post(
-        'https://api.z-api.io/instances/${INSTANCE_ID}/token/${TOKEN}/send-text',
-        {
-          phone: phone,
-          message: resposta
-        }
-      );
-
+https://api.z-api.io/instances/${INSTANCE_ID}/token/${TOKEN}/send-text,
+{
+  phone: phone,
+  message: resposta
+},
+{
+  headers: {
+    "Client-Token": CLIENT_TOKEN
+  }
+}
+);
     }
 
   } catch (erro) {
