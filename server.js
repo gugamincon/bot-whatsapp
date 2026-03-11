@@ -223,23 +223,29 @@ Authorization: `Bearer ${MP_TOKEN}`,
 }
 );
 
-const qr = pagamento.data.point_of_interaction.transaction_data.qr_code_base64;
+const pix = pagamento.data.point_of_interaction.transaction_data.qr_code;  
+  
+await axios.post(  
+`https://api.z-api.io/instances/${INSTANCE_ID}/token/${TOKEN}/send-text`,  
+{  
+phone: phone,  
+message:`💳 Pagamento via PIX  
+  
+Valor: R$ ${valor}  
+  
+Copie e cole este código no seu banco:  
+  
+${pix}  
+  
+Após pagar, envie o comprovante aqui para continuarmos 👍`  
+},  
+{  
+headers:{  
+"Client-Token": CLIENT_TOKEN  
+}  
+}  
+);  
 
-await axios.post(
-'https://api.z-api.io/instances/3EFEDC731077E241C94E020CDDF3D26F/token/41C20838289CB5BB5756B42E/send-image',
-{
-phone: phone,
-image: qr,
-caption:`Pague o PIX para continuar.
-
-Valor: 'R$${valor}`
-},
-{
-headers:{
-"Client-Token":CLIENT_TOKEN
-}
-}
-);
 
 clientes[phone].pagamento=pagamento.data.id;
 
