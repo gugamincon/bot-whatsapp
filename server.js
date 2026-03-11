@@ -100,7 +100,7 @@ Estamos à disposição.`;
     if (resposta !== "") {
 
       await axios.post(
-https://api.z-api.io/instances/${INSTANCE_ID}/token/${TOKEN}/send-text,
+'https://api.z-api.io/instances/${INSTANCE_ID}/token/${TOKEN}/send-text',
 {
   phone: phone,
   message: resposta
