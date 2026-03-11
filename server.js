@@ -29,7 +29,7 @@ res.send("BOT ONLINE 🚀");
 async function enviarMensagem(phone,msg){
 
 await axios.post(
-https://api.z-api.io/instances/3EFEDC731077E241C94E020CDDF3D26F/token/41C20838289CB5BB5756B42E/send-text,
+'https://api.z-api.io/instances/3EFEDC731077E241C94E020CDDF3D26F/token/41C20838289CB5BB5756B42E/send-text',
 {
 phone: phone,
 message: msg
@@ -223,7 +223,7 @@ Authorization:Bearer ${MP_TOKEN}
 const qr = pagamento.data.point_of_interaction.transaction_data.qr_code_base64;
 
 await axios.post(
-'https://api.z-api.io/instances/${INSTANCE_ID}/token/${TOKEN}/send-image',
+'https://api.z-api.io/instances/3EFEDC731077E241C94E020CDDF3D26F/token/41C20838289CB5BB5756B42E/send-image',
 {
 phone: phone,
 image: qr,
