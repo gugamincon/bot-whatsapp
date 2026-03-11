@@ -217,7 +217,8 @@ email:`cliente${phone}@gmail.com`
 },
 {
 headers:{
-Authorization:`Bearer ${MP_TOKEN}`
+Authorization: `Bearer ${MP_TOKEN}`,
+"X-Idempotency-Key": `${phone}-${Date.now()}`
 }
 }
 );
