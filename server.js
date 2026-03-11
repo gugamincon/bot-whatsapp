@@ -39,65 +39,11 @@ app.post("/webhook", async (req, res) => {
       mensagem?.includes("olá")
     ) {
 
-      resposta = `Olá 👋
+    const nome = reg.body.senderName || "tudo bem";
 
-Promoção para limpar seu nome
+      resposta = 'Ola Tudo bem ${nome}';}
 
-De 999 por apenas 499
 
-Escolha uma opção:
-
-1 - Pagar parcelado
-2 - Pagar à vista (300 reais)
-3 - Deixar para depois`;
-
-    }
-
-    /* PARCELADO */
-
-    else if (mensagem === "1") {
-
-      resposta = `Parcelamento disponível ✅
-
-Entrada de 250 reais
-e mais 250 quando seu nome estiver limpo.
-
-Digite 2 para pagar à vista
-ou 3 para falar depois.`;
-
-    }
-
-    /* À VISTA */
-
-    else if (mensagem === "2") {
-
-      resposta = `Pagamento à vista 💰
-
-Valor promocional: 300 reais
-
-PIX:
-
-19974113636
-
-Após pagar envie o comprovante aqui.`;
-
-    }
-
-    /* DEPOIS */
-
-    else if (mensagem === "3") {
-
-      resposta = `Tudo bem 👍
-
-Quando quiser limpar seu nome é só chamar aqui.
-
-Estamos à disposição.`;
-
-    }
-
-    /* ENVIAR RESPOSTA */
-
-    if (resposta !== "") {
 
       await axios.post(
 'https://api.z-api.io/instances/3EFEDC731077E241C94E020CDDF3D26F/token/41C20838289CB5BB5756B42E/send-text',
