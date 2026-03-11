@@ -203,6 +203,8 @@ const valor = clientes[phone].valor;
 
 /* CRIAR PIX */
 
+console.log("TOKEN MERCADO PAGO:", MP_TOKEN);
+
 const pagamento = await axios.post(
 "https://api.mercadopago.com/v1/payments",
 {
