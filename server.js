@@ -210,7 +210,7 @@ transaction_amount: valor,
 payment_method_id: "pix",
 description: "Processo Limpa Nome",
 payer:{
-email:cliente${phone}@gmail.com
+email:'cliente${phone}@gmail.com'
 }
 },
 {
