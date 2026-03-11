@@ -4,75 +4,299 @@ const axios = require("axios");
 const app = express();
 app.use(express.json());
 
-/* DADOS DA Z-API */
+/* Z-API */
 
 const INSTANCE_ID = "3EFEDC731077E241C94E020CDDF3D26F";
 const TOKEN = "41C20838289CB5BB5756B42E";
 const CLIENT_TOKEN = "Fe75f077cfe7a4a2a8c1a6452291d25c1S";
 
-/* TESTE SERVIDOR */
+/* MERCADO PAGO */
 
-app.get("/", (req, res) => {
-  res.send("Bot WhatsApp rodando 🚀");
+const MP_TOKEN = "TEST-1002279802964854-031022-80408f67684e26f7d070ac34a0e85c30-1279924665";
+
+/* MEMÓRIA CLIENTES */
+
+let clientes = {};
+
+/* TESTE */
+
+app.get("/", (req,res)=>{
+res.send("BOT ONLINE 🚀");
 });
 
-/* WEBHOOK */
+/* FUNÇÃO ENVIAR WHATSAPP */
 
-app.post("/webhook", async (req, res) => {
+async function enviarMensagem(phone,msg){
 
-  try {
-
-    let phone = req.body.phone || req.body.from || req.body.sender || ""; 
-    phone = phone.replace("@c.us", "").replace("+", "");
-    const mensagem = req.body.text?.message?.toLowerCase();
-
-    console.log("Telefone:", phone);
-    console.log("Mensagem:", mensagem);
-
-    let resposta = "";
-
-    /* MENU */
-
-    if (
-      mensagem?.includes("oi") ||
-      mensagem?.includes("ola") ||
-      mensagem?.includes("olá")
-    ) {
-
-    const nome = reg.body.senderName || "tudo bem";
-
-      resposta = 'Ola Tudo bem ${nome}';}
-
-
-
-      await axios.post(
-'https://api.z-api.io/instances/3EFEDC731077E241C94E020CDDF3D26F/token/41C20838289CB5BB5756B42E/send-text',
+await axios.post(
+https://api.z-api.io/instances/3EFEDC731077E241C94E020CDDF3D26F/token/41C20838289CB5BB5756B42E/send-text,
 {
-  phone: phone,
-  message: resposta
+phone: phone,
+message: msg
 },
 {
-  headers: {
-    "Client-Token": CLIENT_TOKEN
-  }
+headers:{
+"Client-Token":CLIENT_TOKEN
+}
 }
 );
-    }
 
-  } catch (erro) {
+}
 
-    console.log("Erro:", erro);
+/* WEBHOOK WHATSAPP */
 
-  }
+app.post("/webhook", async (req,res)=>{
 
-  res.sendStatus(200);
+try{
+
+let phone = req.body.phone || req.body.from || "";
+phone = phone.replace("@c.us","");
+
+const nome = req.body.senderName || "";
+const mensagem = req.body.text?.message?.toLowerCase();
+
+if(!clientes[phone]){
+clientes[phone]={etapa:"inicio"};
+}
+
+/* ETAPA INICIO */
+
+if(mensagem.includes("oi") || mensagem.includes("ola") || mensagem.includes("olá")){
+
+await enviarMensagem(phone,
+`Olá ${nome} tudo bem?
+
+Eu sou assistente virtual da GM soluções financeiras.
+
+Vou te mandar na próxima mensagem um texto explicando quase tudo sobre o nosso processo.
+
+Mas fique à vontade para perguntar depois.`
+);
+
+setTimeout(async ()=>{
+
+await enviarMensagem(phone,
+`✨ PROCESSO LIMPA NOME ✨
+
+Quer limpar seu nome de forma rápida e segura?
+
+📌 Como funciona?
+Você envia:
+
+* Nome completo
+* CPF
+* Comprovante PIX
+
+📆 Listas enviadas semanalmente
+⏳ Prazo: 10 dias úteis
+
+✔ Serasa
+✔ Boa Vista
+✔ CENPROT
+
+⚠ Importante
+
+* Não quita dívida
+* Remove dos órgãos de crédito
+* Não garante crédito`
+);
+
+},5000);
+
+setTimeout(async ()=>{
+
+await enviarMensagem(phone,
+`Você entendeu até aqui?
+
+1️⃣ Sim podemos continuar
+2️⃣ Ainda tenho dúvidas`
+);
+
+},45000);
+
+clientes[phone].etapa="menu";
+
+}
+
+/* MENU */
+
+else if(clientes[phone].etapa=="menu"){
+
+if(mensagem.includes("1")){
+
+await enviarMensagem(phone,
+`Ótimo!
+
+Vamos para parte que interessa.
+
+Temos dois planos:
+
+💳 Parcelado
+3x de 250
+
+💰 À vista
+300 reais
+
+Digite:
+
+1️⃣ Parcelado
+2️⃣ À vista`
+);
+
+clientes[phone].etapa="plano";
+
+}
+
+else{
+
+await enviarMensagem(phone,
+`Nosso atendimento humano pode demorar um pouco.
+
+Quando quiser continuar digite:
+
+CONTINUAR`
+);
+
+}
+
+}
+
+/* ESCOLHA PLANO */
+
+else if(clientes[phone].etapa=="plano"){
+
+if(mensagem.includes("1")){
+
+clientes[phone].valor=250;
+
+}else{
+
+clientes[phone].valor=300;
+
+}
+
+await enviarMensagem(phone,"Me envie seu nome completo");
+
+clientes[phone].etapa="nome";
+
+}
+
+/* PEGAR NOME */
+
+else if(clientes[phone].etapa=="nome"){
+
+clientes[phone].nome=mensagem;
+
+await enviarMensagem(phone,"Agora envie seu CPF");
+
+clientes[phone].etapa="cpf";
+
+}
+
+/* CPF */
+
+else if(clientes[phone].etapa=="cpf"){
+
+clientes[phone].cpf=mensagem;
+
+const valor = clientes[phone].valor;
+
+/* CRIAR PIX */
+
+const pagamento = await axios.post(
+"https://api.mercadopago.com/v1/payments",
+{
+transaction_amount: valor,
+payment_method_id: "pix",
+description: "Processo Limpa Nome",
+payer:{
+email:cliente${phone}@gmail.com
+}
+},
+{
+headers:{
+Authorization:Bearer ${MP_TOKEN}
+}
+}
+);
+
+const qr = pagamento.data.point_of_interaction.transaction_data.qr_code_base64;
+
+await axios.post(
+'https://api.z-api.io/instances/${INSTANCE_ID}/token/${TOKEN}/send-image',
+{
+phone: phone,
+image: qr,
+caption:`Pague o PIX para continuar.
+
+Valor: R$${valor}`
+},
+{
+headers:{
+"Client-Token":CLIENT_TOKEN
+}
+}
+);
+
+clientes[phone].pagamento=pagamento.data.id;
+
+clientes[phone].etapa="aguardando";
+
+}
+
+}catch(e){
+
+console.log(e);
+
+}
+
+res.sendStatus(200);
 
 });
 
-/* PORTA RENDER */
+/* WEBHOOK PAGAMENTO */
+
+app.post("/pagamento", async (req,res)=>{
+
+try{
+
+const pagamento = req.body.data.id;
+
+for(let phone in clientes){
+
+if(clientes[phone].pagamento==pagamento){
+
+await enviarMensagem(phone,
+`✅ Pagamento confirmado!
+
+Obrigado pela preferência.
+
+Nome: ${clientes[phone].nome}
+CPF: ${clientes[phone].cpf}
+
+Seu nome entrou na lista.
+
+Prazo até 10 dias úteis.`
+);
+
+}
+
+}
+
+}catch(e){
+
+console.log(e);
+
+}
+
+res.sendStatus(200);
+
+});
+
+/* PORTA */
 
 const PORT = process.env.PORT || 10000;
 
-app.listen(PORT, () => {
-  console.log("Servidor rodando na porta", PORT);
+app.listen(PORT,()=>{
+console.log("Servidor rodando 🚀");
 });
