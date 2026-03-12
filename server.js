@@ -170,7 +170,7 @@ phone,
 ]
 )
 
-},12000)
+},8000);
 
 clientes[phone].etapa="menu"
 
