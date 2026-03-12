@@ -1,28 +1,28 @@
-const express = require("express");
-const axios = require("axios");
+const express = require("express")
+const axios = require("axios")
 
-const app = express();
-app.use(express.json());
+const app = express()
+app.use(express.json())
 
-/* Z-API */
+/* ZAPI */
 
-const INSTANCE_ID = "3EFEDC731077E241C94E020CDDF3D26F";
-const TOKEN = "41C20838289CB5BB5756B42E";
-const CLIENT_TOKEN = "Fe75f077cfe7a4a2a8c1a6452291d25c1S";
+const INSTANCE_ID = "3EFEDC731077E241C94E020CDDF3D26F"
+const TOKEN = "41C20838289CB5BB5756B42E"
+const CLIENT_TOKEN = "Fe75f077cfe7a4a2a8c1a6452291d25c1S"
 
 /* MERCADO PAGO */
 
-const MP_TOKEN = "TEST-1002279802964854-031022-80408f67684e26f7d070ac34a0e85c30-1279924665";
+const MP_TOKEN = "SEU_TOKEN_MP"
 
 /* MEMÓRIA */
 
-let clientes = {};
+let clientes = {}
 
-/* TESTE SERVIDOR */
+/* TESTE */
 
 app.get("/", (req,res)=>{
-res.send("BOT ONLINE 🚀");
-});
+res.send("BOT ONLINE 🚀")
+})
 
 /* ENVIAR TEXTO */
 
@@ -31,15 +31,13 @@ async function enviarMensagem(phone,msg){
 await axios.post(
 `https://api.z-api.io/instances/${INSTANCE_ID}/token/${TOKEN}/send-text`,
 {
-phone: phone,
+phone,
 message: msg
 },
 {
-headers:{
-"Client-Token": CLIENT_TOKEN
+headers:{ "Client-Token": CLIENT_TOKEN }
 }
-}
-);
+)
 
 }
 
@@ -50,44 +48,75 @@ async function enviarBotoes(phone,texto,botoes){
 await axios.post(
 `https://api.z-api.io/instances/${INSTANCE_ID}/token/${TOKEN}/send-buttons`,
 {
-phone: phone,
+phone,
 message: texto,
 buttonList: botoes
 },
 {
-headers:{
-"Client-Token": CLIENT_TOKEN
+headers:{ "Client-Token": CLIENT_TOKEN }
 }
-}
-);
+)
 
 }
 
-/* WEBHOOK WHATSAPP */
+/* VALIDAR CPF */
+
+function validarCPF(cpf){
+
+cpf = cpf.replace(/\D/g,'')
+
+if(cpf.length !== 11) return false
+
+if(/^(\d)\1+$/.test(cpf)) return false
+
+let soma = 0
+let resto
+
+for(let i=1;i<=9;i++)
+soma = soma + parseInt(cpf.substring(i-1,i)) * (11-i)
+
+resto = (soma * 10) % 11
+
+if(resto == 10 || resto == 11) resto = 0
+if(resto != parseInt(cpf.substring(9,10))) return false
+
+soma = 0
+
+for(let i=1;i<=10;i++)
+soma = soma + parseInt(cpf.substring(i-1,i)) * (12-i)
+
+resto = (soma * 10) % 11
+
+if(resto == 10 || resto == 11) resto = 0
+if(resto != parseInt(cpf.substring(10,11))) return false
+
+return true
+
+}
+
+/* WEBHOOK */
 
 app.post("/webhook", async (req,res)=>{
 
+console.log(JSON.stringify(req.body,null,2))
+
 try{
 
-let phone = req.body.phone || req.body.from || "";
-phone = phone.replace("@c.us","");
+let phone = req.body.phone || req.body.from || ""
+phone = phone.replace("@c.us","")
 
-const nome = req.body.senderName || "";
+if(!phone) return res.sendStatus(200)
 
-/* CAPTURA TEXTO OU BOTÃO */
+const nome = req.body.senderName || ""
 
 const mensagem =
 req.body.text?.message?.toLowerCase() ||
-req.body.buttonReply?.id ||
-req.body.buttonResponse?.id ||
-"";
-
-if(!phone){
-return res.sendStatus(200);
-}
+req.body.buttonResponse?.selectedButtonId ||
+req.body.buttonResponse?.message ||
+""
 
 if(!clientes[phone]){
-clientes[phone]={etapa:"inicio"};
+clientes[phone]={etapa:"inicio"}
 }
 
 /* INICIO */
@@ -95,14 +124,9 @@ clientes[phone]={etapa:"inicio"};
 if(mensagem.includes("oi") || mensagem.includes("ola") || mensagem.includes("olá")){
 
 await enviarMensagem(phone,
-`Olá ${nome}, tudo bem?
+`Olá ${nome} tudo bem?
 
-Eu sou assistente virtual da GM Soluções Financeiras.
-
-Vou te mandar na próxima mensagem um texto explicando quase tudo sobre o nosso processo.
-
-Mas fique à vontade para perguntar depois 👍`
-);
+Eu sou o assistente virtual da GM Soluções Financeiras.`)
 
 setTimeout(async ()=>{
 
@@ -111,16 +135,16 @@ await enviarMensagem(phone,
 
 Quer limpar seu nome de forma rápida e segura?
 
-📌 Como funciona?
+📌 Como funciona
 
-Você envia:
+Você envia
 
 • Nome completo
 • CPF
 • Comprovante PIX
 
 📆 Listas enviadas semanalmente
-⏳ Prazo: 10 dias úteis
+⏳ Prazo médio 10 dias úteis
 
 ✔ Serasa
 ✔ Boa Vista
@@ -131,9 +155,9 @@ Você envia:
 • Não quita dívida
 • Remove dos órgãos de crédito
 • Não garante crédito`
-);
+)
 
-},5000);
+},4000)
 
 setTimeout(async ()=>{
 
@@ -141,14 +165,14 @@ await enviarBotoes(
 phone,
 "Você entendeu até aqui?",
 [
-{ id:"sim", label:"✅ Podemos continuar" },
+{ id:"continuar", label:"✅ Podemos continuar" },
 { id:"duvida", label:"❓ Tenho dúvidas" }
 ]
-);
+)
 
-},45000);
+},12000)
 
-clientes[phone].etapa="menu";
+clientes[phone].etapa="menu"
 
 }
 
@@ -156,62 +180,57 @@ clientes[phone].etapa="menu";
 
 else if(clientes[phone].etapa=="menu"){
 
-if(mensagem=="sim"){
+if(mensagem.includes("continuar")){
 
 await enviarBotoes(
 phone,
-"Escolha um plano:",
+"Escolha um plano",
 [
-{ id:"parcelado", label:"💳 Parcelado 3x de 250" },
+{ id:"parcelado", label:"💳 3x de 250" },
 { id:"avista", label:"💰 À vista 300" }
 ]
-);
+)
 
-clientes[phone].etapa="plano";
+clientes[phone].etapa="plano"
 
 }
 
 else{
 
 await enviarMensagem(phone,
-`Sem problemas 👍
-
-Se quiser continuar depois é só escrever:
-
-CONTINUAR`
-);
+"Nosso atendimento humano pode demorar um pouco.\n\nDigite *CONTINUAR* quando quiser seguir 👍")
 
 }
 
 }
 
-/* ESCOLHA PLANO */
+/* PLANO */
 
 else if(clientes[phone].etapa=="plano"){
 
-if(mensagem=="parcelado"){
-clientes[phone].valor=250;
+if(mensagem.includes("parcelado")){
+clientes[phone].valor = 250
 }
 
-if(mensagem=="avista"){
-clientes[phone].valor=300;
+if(mensagem.includes("avista")){
+clientes[phone].valor = 300
 }
 
-await enviarMensagem(phone,"Me envie seu nome completo");
+await enviarMensagem(phone,"Me envie seu *nome completo*")
 
-clientes[phone].etapa="nome";
+clientes[phone].etapa="nome"
 
 }
 
-/* PEGAR NOME */
+/* NOME */
 
 else if(clientes[phone].etapa=="nome"){
 
-clientes[phone].nome = mensagem;
+clientes[phone].nome = mensagem
 
-await enviarMensagem(phone,"Agora envie seu CPF");
+await enviarMensagem(phone,"Agora envie seu *CPF*")
 
-clientes[phone].etapa="cpf";
+clientes[phone].etapa="cpf"
 
 }
 
@@ -219,103 +238,68 @@ clientes[phone].etapa="cpf";
 
 else if(clientes[phone].etapa=="cpf"){
 
-clientes[phone].cpf = mensagem;
+if(!validarCPF(mensagem)){
 
-const valor = clientes[phone].valor;
+await enviarMensagem(phone,
+"❌ CPF inválido\n\nDigite novamente apenas os números")
 
-/* CRIAR PIX */
+return res.sendStatus(200)
+
+}
+
+clientes[phone].cpf = mensagem
+
+const valor = clientes[phone].valor
 
 const pagamento = await axios.post(
 "https://api.mercadopago.com/v1/payments",
 {
 transaction_amount: valor,
 payment_method_id: "pix",
-description: "Processo Limpa Nome",
-payer:{
-email:`cliente${phone}@gmail.com`
-}
+description: "Limpa Nome GM",
+payer:{ email:`cliente${phone}@gmail.com` }
 },
 {
 headers:{
 Authorization:`Bearer ${MP_TOKEN}`,
-"X-Idempotency-Key": `${phone}-${Date.now()}`
+"X-Idempotency-Key":`${phone}-${Date.now()}`
 }
 }
-);
+)
 
-const pix = pagamento.data.point_of_interaction.transaction_data.qr_code;
+const pix = pagamento.data.point_of_interaction.transaction_data.qr_code
 
 await enviarMensagem(phone,
-`💳 Pagamento via PIX
+`💳 PAGAMENTO PIX
 
 Valor: R$ ${valor}
 
-Copie e cole este código no seu banco:
+Copie o código abaixo no seu banco:
 
 ${pix}
 
-Após pagar envie o comprovante aqui 👍`
-);
+Após pagar envie o comprovante 👍`
+)
 
-clientes[phone].pagamento = pagamento.data.id;
-
-clientes[phone].etapa="aguardando";
-
-}
-
-}catch(e){
-
-console.log("ERRO:",e.response?.data || e.message);
-
-}
-
-res.sendStatus(200);
-
-});
-
-/* WEBHOOK PAGAMENTO */
-
-app.post("/pagamento", async (req,res)=>{
-
-try{
-
-const pagamento = req.body.data.id;
-
-for(let phone in clientes){
-
-if(clientes[phone].pagamento == pagamento){
-
-await enviarMensagem(phone,
-`✅ Pagamento confirmado!
-
-Obrigado pela preferência.
-
-Nome: ${clientes[phone].nome}
-CPF: ${clientes[phone].cpf}
-
-Seu nome entrou na lista.
-
-Prazo até 10 dias úteis.`
-);
-
-}
+clientes[phone].pagamento = pagamento.data.id
+clientes[phone].etapa="aguardando"
 
 }
 
 }catch(e){
 
-console.log(e);
+console.log("ERRO:",e.response?.data || e.message)
 
 }
 
-res.sendStatus(200);
+res.sendStatus(200)
 
-});
+})
 
 /* PORTA */
 
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 10000
 
 app.listen(PORT,()=>{
-console.log("Servidor rodando 🚀");
-});
+console.log("Servidor rodando 🚀")
+})
