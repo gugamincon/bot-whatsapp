@@ -98,6 +98,29 @@ return true
 
 app.post("/webhook", async (req,res)=>{
 
+app.post("/webhook", async (req,res)=>{
+
+console.log(JSON.stringify(req.body,null,2));
+
+try{
+
+let phone = req.body.phone || req.body.from || "";
+phone = phone.replace("@c.us","");
+
+/* LER MENSAGEM */
+
+let mensagem = "";
+
+if (req.body.text && req.body.text.message) {
+mensagem = req.body.text.message.toLowerCase();
+}
+
+if (req.body.buttonResponse && req.body.buttonResponse.selectedButtonId) {
+mensagem = req.body.buttonResponse.selectedButtonId;
+}
+
+const nome = req.body.senderName || "";
+
 console.log(JSON.stringify(req.body,null,2))
 
 try{
