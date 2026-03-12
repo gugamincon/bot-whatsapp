@@ -109,11 +109,15 @@ if(!phone) return res.sendStatus(200)
 
 const nome = req.body.senderName || ""
 
-const mensagem =
-req.body.text?.message?.toLowerCase() ||
-req.body.buttonResponse?.selectedButtonId ||
-req.body.buttonResponse?.message ||
-""
+let mensagem = "";
+
+if(req.body.text && req.body.text.message){
+mensagem = req.body.text.message.toLowerCase();
+}
+
+if(req.body.buttonResponse && req.body.buttonResponse.selectedButtonId){
+mensagem = req.body.buttonResponse.selectedButtonId;
+}
 
 if(!clientes[phone]){
 clientes[phone]={etapa:"inicio"}
@@ -121,7 +125,7 @@ clientes[phone]={etapa:"inicio"}
 
 /* INICIO */
 
-if(mensagem.includes("oi") || mensagem.includes("ola") || mensagem.includes("olá")){
+if(mensagem === "oi" || mensagem === "ola" || mensagem === "olá"){
 
 await enviarMensagem(phone,
 `Olá ${nome} tudo bem?
