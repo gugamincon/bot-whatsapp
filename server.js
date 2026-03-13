@@ -1,97 +1,77 @@
-const express = require("express")
-const axios = require("axios")
+const express = require("express");
+const axios = require("axios");
 
-const app = express()
-app.use(express.json())
+const app = express();
+app.use(express.json());
 
-/* ZAPI */
+/* Z-API */
 
-const INSTANCE_ID = "3EFEDC731077E241C94E020CDDF3D26F"
-const TOKEN = "41C20838289CB5BB5756B42E"
-const CLIENT_TOKEN = "Fe75f077cfe7a4a2a8c1a6452291d25c1S"
+const INSTANCE_ID = "3EFEDC731077E241C94E020CDDF3D26F";
+const TOKEN = "41C20838289CB5BB5756B42E";
+const CLIENT_TOKEN = "Fe75f077cfe7a4a2a8c1a6452291d25c1S";
 
-/* MEMÓRIA */
+/* MERCADO PAGO */
 
-let clientes = {}
+const MP_TOKEN = "TEST-1002279802964854-031022-80408f67684e26f7d070ac34a0e85c30-1279924665";
+
+/* MEMÓRIA CLIENTES */
+
+let clientes = {};
 
 /* TESTE */
 
 app.get("/", (req,res)=>{
-res.send("BOT ONLINE 🚀")
-})
+res.send("BOT ONLINE 🚀");
+});
 
-/* ENVIAR TEXTO */
+/* FUNÇÃO ENVIAR WHATSAPP */
 
 async function enviarMensagem(phone,msg){
 
 await axios.post(
-`https://api.z-api.io/instances/${INSTANCE_ID}/token/${TOKEN}/send-text`,
+'https://api.z-api.io/instances/3EFEDC731077E241C94E020CDDF3D26F/token/41C20838289CB5BB5756B42E/send-text',
 {
-phone,
+phone: phone,
 message: msg
 },
 {
-headers:{ "Client-Token": CLIENT_TOKEN }
+headers:{
+"Client-Token":CLIENT_TOKEN
 }
-)
-
 }
-
-/* ENVIAR BOTÕES */
-
-async function enviarBotoes(phone,texto,botoes){
-
-await axios.post(
-`https://api.z-api.io/instances/${INSTANCE_ID}/token/${TOKEN}/send-buttons`,
-{
-phone,
-message: texto,
-buttons: botoes
-},
-{
-headers:{ "Client-Token": CLIENT_TOKEN }
-}
-)
+);
 
 }
 
-/* WEBHOOK */
+/* WEBHOOK WHATSAPP */
 
 app.post("/webhook", async (req,res)=>{
 
-console.log(JSON.stringify(req.body,null,2))
-
 try{
 
-let phone = req.body.phone || req.body.from || ""
-phone = phone.replace("@c.us","")
+let phone = req.body.phone || req.body.from || "";
+phone = phone.replace("@c.us","");
 
-if(!phone) return res.sendStatus(200)
-
-let mensagem = ""
-
-if(req.body.text && req.body.text.message){
-mensagem = req.body.text.message.toLowerCase()
-}
-
-if(req.body.buttonResponse && req.body.buttonResponse.selectedButtonId){
-mensagem = req.body.buttonResponse.selectedButtonId
-}
-
-const nome = req.body.senderName || ""
+const nome = req.body.senderName || "";
+const mensagem = req.body.text?.message?.toLowerCase();
 
 if(!clientes[phone]){
-clientes[phone] = { etapa:"inicio" }
+clientes[phone]={etapa:"inicio"};
 }
 
-/* INICIO */
+/* ETAPA INICIO */
 
-if(mensagem === "oi" || mensagem === "ola" || mensagem === "olá"){
+if(mensagem.includes("oi") || mensagem.includes("ola") || mensagem.includes("olá")){
 
 await enviarMensagem(phone,
-`Olá ${nome} tudo bem?
+`Olá ${nome} tudo bem?'
 
-Eu sou o assistente virtual da GM Soluções Financeiras.`)
+Eu sou assistente virtual da GM soluções financeiras.
+
+Vou te mandar na próxima mensagem um texto explicando quase tudo sobre o nosso processo.
+
+Mas fique à vontade para perguntar depois.`
+);
 
 setTimeout(async ()=>{
 
@@ -100,16 +80,15 @@ await enviarMensagem(phone,
 
 Quer limpar seu nome de forma rápida e segura?
 
-📌 Como funciona
+📌 Como funciona?
+Você envia:
 
-Você envia
-
-• Nome completo
-• CPF
-• Comprovante PIX
+* Nome completo
+* CPF
+* Comprovante PIX
 
 📆 Listas enviadas semanalmente
-⏳ Prazo médio 10 dias úteis
+⏳ Prazo: 10 dias úteis
 
 ✔ Serasa
 ✔ Boa Vista
@@ -117,110 +96,216 @@ Você envia
 
 ⚠ Importante
 
-• Não quita dívida
-• Remove dos órgãos de crédito
-• Não garante crédito`
-)
+* Não quita dívida
+* Remove dos órgãos de crédito
+* Não garante crédito`
+);
 
-},4000)
+},5000);
 
 setTimeout(async ()=>{
 
-await enviarBotoes(
-phone,
-"Você entendeu até aqui?",
-[
-{ id:"continuar", label:"✅ Podemos continuar" },
-{ id:"duvida", label:"❓ Tenho dúvidas" }
-]
-)
+await enviarMensagem(phone,
+`Você entendeu até aqui?
 
-},8000)
+1️⃣ Sim podemos continuar
+2️⃣ Ainda tenho dúvidas`
+);
 
-clientes[phone].etapa="menu"
+},45000);
+
+clientes[phone].etapa="menu";
 
 }
 
 /* MENU */
 
-else if(clientes[phone].etapa === "menu"){
+else if(clientes[phone].etapa=="menu"){
 
-if(mensagem === "continuar"){
+if(mensagem.includes("1")){
 
-await enviarBotoes(
-phone,
-"Escolha um plano",
-[
-{ id:"parcelado", label:"💳 3x de 250" },
-{ id:"avista", label:"💰 À vista 300" }
-]
-)
+await enviarMensagem(phone,
+`Ótimo!
 
-clientes[phone].etapa="plano"
+Vamos para parte que interessa.
+
+Temos dois planos:
+
+💳 Parcelado
+3x de 250
+
+💰 À vista
+300 reais
+
+Digite:
+
+1️⃣ Parcelado
+2️⃣ À vista`
+);
+
+clientes[phone].etapa="plano";
+
+}
+
+else{
+
+await enviarMensagem(phone,
+`Nosso atendimento humano pode demorar um pouco.
+
+Quando quiser continuar digite:
+
+CONTINUAR`
+);
+
+}
+
+}
+
+/* ESCOLHA PLANO */
+
+else if(clientes[phone].etapa=="plano"){
+
+if(mensagem.includes("1")){
+
+clientes[phone].valor=250;
 
 }else{
 
-await enviarMensagem(phone,
-"Nosso atendimento humano pode demorar um pouco.\n\nDigite *CONTINUAR* quando quiser seguir 👍")
+clientes[phone].valor=300;
 
 }
 
-}
+await enviarMensagem(phone,"Me envie seu nome completo");
 
-/* PLANO */
-
-else if(clientes[phone].etapa === "plano"){
-
-if(mensagem === "parcelado"){
-clientes[phone].valor = 250
-}
-
-if(mensagem === "avista"){
-clientes[phone].valor = 300
-}
-
-await enviarMensagem(phone,"Me envie seu *nome completo*")
-
-clientes[phone].etapa="nome"
+clientes[phone].etapa="nome";
 
 }
 
-/* NOME */
+/* PEGAR NOME */
 
-else if(clientes[phone].etapa === "nome"){
+else if(clientes[phone].etapa=="nome"){
 
-clientes[phone].nome = mensagem
+clientes[phone].nome=mensagem;
 
-await enviarMensagem(phone,"Agora envie seu *CPF*")
+await enviarMensagem(phone,"Agora envie seu CPF");
 
-clientes[phone].etapa="cpf"
+clientes[phone].etapa="cpf";
 
 }
 
 /* CPF */
 
-else if(clientes[phone].etapa === "cpf"){
+else if(clientes[phone].etapa=="cpf"){
 
-await enviarMensagem(phone,"CPF recebido 👍")
+clientes[phone].cpf=mensagem;
 
-clientes[phone].etapa="fim"
+const valor = clientes[phone].valor;
+
+/* CRIAR PIX */
+
+console.log("TOKEN MERCADO PAGO:", MP_TOKEN);
+
+const pagamento = await axios.post(
+"https://api.mercadopago.com/v1/payments",
+{
+transaction_amount: valor,
+payment_method_id: "pix",
+description: "Processo Limpa Nome",
+payer:{
+email:`cliente${phone}@gmail.com`
+}
+},
+{
+headers:{
+Authorization: `Bearer ${MP_TOKEN}`,
+"X-Idempotency-Key": `${phone}-${Date.now()}`
+}
+}
+);
+
+const pix = pagamento.data.point_of_interaction.transaction_data.qr_code;  
+  
+await axios.post(  
+`https://api.z-api.io/instances/${INSTANCE_ID}/token/${TOKEN}/send-text`,  
+{  
+phone: phone,  
+message:`💳 Pagamento via PIX  
+  
+Valor: R$ ${valor}  
+  
+Copie e cole este código no seu banco:  
+  
+${pix}  
+  
+Após pagar, envie o comprovante aqui para continuarmos 👍`  
+},  
+{  
+headers:{  
+"Client-Token": CLIENT_TOKEN  
+}  
+}  
+);  
+
+
+clientes[phone].pagamento=pagamento.data.id;
+
+clientes[phone].etapa="aguardando";
 
 }
 
 }catch(e){
 
-console.log("ERRO:",e.response?.data || e.message)
+console.log(e);
 
 }
 
-res.sendStatus(200)
+res.sendStatus(200);
 
-})
+});
+
+/* WEBHOOK PAGAMENTO */
+
+app.post("/pagamento", async (req,res)=>{
+
+try{
+
+const pagamento = req.body.data.id;
+
+for(let phone in clientes){
+
+if(clientes[phone].pagamento==pagamento){
+
+await enviarMensagem(phone,
+`✅ Pagamento confirmado!
+
+Obrigado pela preferência.
+
+Nome: '${clientes[phone].nome}'
+CPF: '${clientes[phone].cpf}'
+
+Seu nome entrou na lista.
+
+Prazo até 10 dias úteis.`
+);
+
+}
+
+}
+
+}catch(e){
+
+console.log(e);
+
+}
+
+res.sendStatus(200);
+
+});
 
 /* PORTA */
 
-const PORT = process.env.PORT || 10000
+const PORT = process.env.PORT || 10000;
 
 app.listen(PORT,()=>{
-console.log("Servidor rodando 🚀")
-})
+console.log("Servidor rodando 🚀");
+});
