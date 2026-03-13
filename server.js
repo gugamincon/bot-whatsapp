@@ -228,7 +228,7 @@ const dadosPix = pagamento.data.point_of_interaction.transaction_data;
 const copiaecola = dadosPix.qr_code;
 const qrBase64 = dadosPix.qr_code_base64;
 
-/* ENVIA QR CODE COMO IMAGEM */
+/* ENVIA IMAGEM DO QR CODE */
 
 await axios.post(
 `https://api.z-api.io/instances/${INSTANCE_ID}/token/${TOKEN}/send-image`,
@@ -239,19 +239,23 @@ caption:`💳 PAGAMENTO VIA PIX
 
 Valor: R$ ${valor}
 
-Escaneie o QR Code acima.
-
-Ou copie o código abaixo:
-
-${copiaecola}
-
-Após pagar o sistema confirma automaticamente ✅`
+Escaneie o QR Code acima.`
 },
 {
 headers:{
 "Client-Token": CLIENT_TOKEN
 }
 }
+);
+
+/* ENVIA CÓDIGO PIX SEPARADO */
+
+await enviarMensagem(phone,
+`📋 PIX COPIA E COLA
+
+${copiaecola}
+
+(segure no código acima e clique em copiar)`
 );
 
 
@@ -277,24 +281,37 @@ app.post("/pagamento", async (req,res)=>{
 
 try{
 
-const pagamento = req.body.data.id;
+const paymentId = req.body.data.id;
+
+const consulta = await axios.get(
+`https://api.mercadopago.com/v1/payments/${paymentId}`,
+{
+headers:{
+Authorization:`Bearer ${MP_TOKEN}`
+}
+}
+);
+
+if(consulta.data.status == "approved"){
 
 for(let phone in clientes){
 
-if(clientes[phone].pagamento==pagamento){
+if(clientes[phone].pagamento == paymentId){
 
 await enviarMensagem(phone,
 `✅ Pagamento confirmado!
 
 Obrigado pela preferência.
 
-Nome: '${clientes[phone].nome}'
-CPF: '${clientes[phone].cpf}'
+Nome: ${clientes[phone].nome}
+CPF: ${clientes[phone].cpf}
 
 Seu nome entrou na lista.
 
 Prazo até 10 dias úteis.`
 );
+
+}
 
 }
 
