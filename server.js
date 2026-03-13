@@ -10,10 +10,6 @@ const INSTANCE_ID = "3EFEDC731077E241C94E020CDDF3D26F"
 const TOKEN = "41C20838289CB5BB5756B42E"
 const CLIENT_TOKEN = "Fe75f077cfe7a4a2a8c1a6452291d25c1S"
 
-/* MERCADO PAGO */
-
-const MP_TOKEN = "SEU_TOKEN_MP"
-
 /* MEMÓRIA */
 
 let clientes = {}
@@ -50,7 +46,7 @@ await axios.post(
 {
 phone,
 message: texto,
-buttonList: botoes
+buttons: botoes
 },
 {
 headers:{ "Client-Token": CLIENT_TOKEN }
@@ -59,67 +55,9 @@ headers:{ "Client-Token": CLIENT_TOKEN }
 
 }
 
-/* VALIDAR CPF */
-
-function validarCPF(cpf){
-
-cpf = cpf.replace(/\D/g,'')
-
-if(cpf.length !== 11) return false
-
-if(/^(\d)\1+$/.test(cpf)) return false
-
-let soma = 0
-let resto
-
-for(let i=1;i<=9;i++)
-soma = soma + parseInt(cpf.substring(i-1,i)) * (11-i)
-
-resto = (soma * 10) % 11
-
-if(resto == 10 || resto == 11) resto = 0
-if(resto != parseInt(cpf.substring(9,10))) return false
-
-soma = 0
-
-for(let i=1;i<=10;i++)
-soma = soma + parseInt(cpf.substring(i-1,i)) * (12-i)
-
-resto = (soma * 10) % 11
-
-if(resto == 10 || resto == 11) resto = 0
-if(resto != parseInt(cpf.substring(10,11))) return false
-
-return true
-
-}
-
 /* WEBHOOK */
 
 app.post("/webhook", async (req,res)=>{
-
-app.post("/webhook", async (req,res)=>{
-
-console.log(JSON.stringify(req.body,null,2));
-
-try{
-
-let phone = req.body.phone || req.body.from || "";
-phone = phone.replace("@c.us","");
-
-/* LER MENSAGEM */
-
-let mensagem = "";
-
-if (req.body.text && req.body.text.message) {
-mensagem = req.body.text.message.toLowerCase();
-}
-
-if (req.body.buttonResponse && req.body.buttonResponse.selectedButtonId) {
-mensagem = req.body.buttonResponse.selectedButtonId;
-}
-
-const nome = req.body.senderName || "";
 
 console.log(JSON.stringify(req.body,null,2))
 
@@ -130,20 +68,20 @@ phone = phone.replace("@c.us","")
 
 if(!phone) return res.sendStatus(200)
 
-const nome = req.body.senderName || ""
-
-let mensagem = "";
+let mensagem = ""
 
 if(req.body.text && req.body.text.message){
-mensagem = req.body.text.message.toLowerCase();
+mensagem = req.body.text.message.toLowerCase()
 }
 
 if(req.body.buttonResponse && req.body.buttonResponse.selectedButtonId){
-mensagem = req.body.buttonResponse.selectedButtonId;
+mensagem = req.body.buttonResponse.selectedButtonId
 }
 
+const nome = req.body.senderName || ""
+
 if(!clientes[phone]){
-clientes[phone]={etapa:"inicio"}
+clientes[phone] = { etapa:"inicio" }
 }
 
 /* INICIO */
@@ -197,7 +135,7 @@ phone,
 ]
 )
 
-},8000);
+},8000)
 
 clientes[phone].etapa="menu"
 
@@ -205,9 +143,9 @@ clientes[phone].etapa="menu"
 
 /* MENU */
 
-else if(clientes[phone].etapa=="menu"){
+else if(clientes[phone].etapa === "menu"){
 
-if(mensagem.includes("continuar")){
+if(mensagem === "continuar"){
 
 await enviarBotoes(
 phone,
@@ -220,9 +158,7 @@ phone,
 
 clientes[phone].etapa="plano"
 
-}
-
-else{
+}else{
 
 await enviarMensagem(phone,
 "Nosso atendimento humano pode demorar um pouco.\n\nDigite *CONTINUAR* quando quiser seguir 👍")
@@ -233,13 +169,13 @@ await enviarMensagem(phone,
 
 /* PLANO */
 
-else if(clientes[phone].etapa=="plano"){
+else if(clientes[phone].etapa === "plano"){
 
-if(mensagem.includes("parcelado")){
+if(mensagem === "parcelado"){
 clientes[phone].valor = 250
 }
 
-if(mensagem.includes("avista")){
+if(mensagem === "avista"){
 clientes[phone].valor = 300
 }
 
@@ -251,7 +187,7 @@ clientes[phone].etapa="nome"
 
 /* NOME */
 
-else if(clientes[phone].etapa=="nome"){
+else if(clientes[phone].etapa === "nome"){
 
 clientes[phone].nome = mensagem
 
@@ -263,53 +199,11 @@ clientes[phone].etapa="cpf"
 
 /* CPF */
 
-else if(clientes[phone].etapa=="cpf"){
+else if(clientes[phone].etapa === "cpf"){
 
-if(!validarCPF(mensagem)){
+await enviarMensagem(phone,"CPF recebido 👍")
 
-await enviarMensagem(phone,
-"❌ CPF inválido\n\nDigite novamente apenas os números")
-
-return res.sendStatus(200)
-
-}
-
-clientes[phone].cpf = mensagem
-
-const valor = clientes[phone].valor
-
-const pagamento = await axios.post(
-"https://api.mercadopago.com/v1/payments",
-{
-transaction_amount: valor,
-payment_method_id: "pix",
-description: "Limpa Nome GM",
-payer:{ email:`cliente${phone}@gmail.com` }
-},
-{
-headers:{
-Authorization:`Bearer ${MP_TOKEN}`,
-"X-Idempotency-Key":`${phone}-${Date.now()}`
-}
-}
-)
-
-const pix = pagamento.data.point_of_interaction.transaction_data.qr_code
-
-await enviarMensagem(phone,
-`💳 PAGAMENTO PIX
-
-Valor: R$ ${valor}
-
-Copie o código abaixo no seu banco:
-
-${pix}
-
-Após pagar envie o comprovante 👍`
-)
-
-clientes[phone].pagamento = pagamento.data.id
-clientes[phone].etapa="aguardando"
+clientes[phone].etapa="fim"
 
 }
 
