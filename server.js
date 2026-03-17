@@ -149,13 +149,55 @@ clientes[phone].etapa="plano";
 else{
 
 await enviarMensagem(phone,
+`Nosso atendimento humano pode demorar um pouco...
+`);
+}
+
+else if(mensagem.includes("1")){
+
+await enviarMensagem(phone,
+`Perfeito! Vamos continuar 👇
+
+Temos dois planos:
+
+💳 Parcelado
+3x de 250
+
+💰 À vista
+300 reais
+
+Digite:
+
+1️⃣ Parcelado
+2️⃣ À vista`
+);
+
+clientes[phone].etapa="plano";
+
+}else{
+
+await enviarMensagem(phone,
 `Nosso atendimento humano pode demorar um pouco.
-Se quiser pode chama nosso numero para atendimento humano
-19974113636
 
-Quando quiser continuar digite:
+Se quiser pode chamar nosso número:
+📞 19974113636
 
-CONTINUAR`
+Ou continuar por aqui 👇
+
+1️⃣ Continuar`
+);
+
+}
+
+await enviarMensagem(phone,
+`Nosso atendimento humano pode demorar um pouco.
+
+Se quiser pode chamar nosso número:
+📞 19974113636
+
+Ou continuar por aqui 👇
+
+1️⃣ Continuar`
 );
 
 }
