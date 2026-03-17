@@ -85,7 +85,6 @@ Você envia:
 
 * Nome completo
 * CPF
-* Comprovante PIX
 
 📆 Listas enviadas semanalmente
 ⏳ Prazo: 10 dias úteis
@@ -151,6 +150,8 @@ else{
 
 await enviarMensagem(phone,
 `Nosso atendimento humano pode demorar um pouco.
+Se quiser pode chama nosso numero para atendimento humano
+19974113636
 
 Quando quiser continuar digite:
 
